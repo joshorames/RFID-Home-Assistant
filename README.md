@@ -274,62 +274,7 @@ PN532 initialization happens after Wi-Fi setup, and if the reader isn’t found,
 
 Didn't find PN53x board
 
-🛠️ Troubleshooting
-PN532 not detected (Didn't find PN53x board)
-
-Double-check I²C mode on your PN532 (jumpers / DIP switch).
-
-Verify wiring:
-
-SDA → D6
-
-SCL → D5
-
-IRQ → D3
-
-RST → D6 (as in code)
-
-VCC → correct voltage (3.3V vs 5V per module)
-
-Ensure GND is common between PN532 and ESP32.
-
-Web page doesn’t load
-
-Make sure you’re on the same network as the ESP32.
-
-Check IP in the Serial Monitor.
-
-If Wi-Fi connect failed, device uses AP+STA:
-
-Connect to ESP32-Setup and open http://192.168.4.1/.
-
-Tag scanned but nothing happens
-
-Check Serial Monitor to see if UID is printed.
-
-Make sure the tag UID appears in the Stored RFID Tags table.
-
-Verify the per-tag URL is a valid HTTPS/HTTP URL.
-
-Check that the destination server accepts GET requests.
-
-🧩 Ideas & Extensions
-
-Add an output pin to drive a relay for physical door strike.
-
-Add a buzzer:
-
-Short beep = success
-
-Long beep = unknown tag
-
-Add a status LED:
-
-Green flash: known tag
-
-Red flash: unknown tag
-
-Log last N scanned tags and display them in a web “Logs” section.
+ 
 
 📄 License
 
