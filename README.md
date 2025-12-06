@@ -1,235 +1,155 @@
-ESP32 FRID Home Assistant
-Web Portal • NFC Tag Storage • Per-Tag Actions • PN532 Reader • Alexa-Compatible
+# ESP32 RFID Home Assistant
 
-This project turns an ESP32 board and a PN532 NFC module into a configurable smart doorbell or access automation system. Each NFC/RFID tag can trigger its own custom URL (such as an Alexa Virtual Smart Home routine, Home Assistant webhook, or any HTTP GET endpoint).
+Turn an ESP32-S3 (XIAO) and a PN532 NFC reader into a **smart doorbell system**:
 
-Everything is controlled from a built-in web interface: Wi-Fi setup, NFC tag management, and URL assignment.
+- Configure Wi-Fi from a **captive-style web portal**
+- Scan RFID/NFC tags with a **PN532**
+- Store tags in **flash memory (Preferences)**
+- Assign a **custom Alexa / HTTP URL per tag**
+- Trigger different **Alexa routines / webhooks** based on which tag was scanned
+- Manage everything from a simple **web UI**
 
-Features
-Web-Based Control Panel
+---
 
-Configure Wi-Fi (SSID and password)
+## ✨ Features
 
-Edit the default doorbell URL
+- 🔐 **NFC / RFID Authentication**
+  - Uses **PN532** in I²C + IRQ mode
+  - Reads card UID and uses it as the key
 
-Add new NFC/RFID tags
+- 🌐 **Wi-Fi Setup Portal**
+  - First run: starts an **AP** named `ESP32-Setup`
+  - Enter SSID/password via browser
+  - On boot: tries saved Wi-Fi, falls back to **AP+STA** if connect fails
 
-Edit per-tag URLs
+- 📡 **Per-Tag Custom Doorbell URLs**
+  - Each RFID tag can have its own **custom URL**
+  - Perfect for **Virtual Smart Home**, **IFTTT**, **Home Assistant**, etc.
+  - New tags default to a **global URL**, but can be edited
 
-Delete tags
+- 🖥️ **Built-in Web UI**
+  - View Wi-Fi status
+  - Edit Wi-Fi credentials
+  - Edit global default doorbell URL
+  - Add new RFID tags
+  - View all stored tags in a **table**
+  - Edit the URL for each tag
+  - Delete tags
+  - **Test Doorbell** button (manual trigger)
 
-Trigger a test doorbell action
+- 💾 **Persistent Storage**
+  - Uses `Preferences` to store:
+    - Wi-Fi credentials
+    - Global default URL
+    - List of tag UIDs
+    - URL per tag
 
-NFC / RFID Tag Reader
+---
 
-Uses PN532 in I2C + IRQ mode
+## 🧱 Hardware
 
-Reads card UID reliably
+- **Microcontroller**
+  - Seeed Studio **XIAO ESP32-S3**
 
-Debounce system prevents repeated triggers
+- **NFC Reader**
+  - PN532 NFC module (I²C mode, with IRQ pin)
 
-Unknown tags are ignored
+---
 
-Known tags trigger their assigned URL via HTTP GET
+## 🔌 Wiring
 
-Persistent Storage
+> These are the pins used in the code. Adjust only if you also update the pin definitions in the sketch.
 
-Stored using ESP32 Preferences (flash memory):
+### PN532 → XIAO ESP32-S3
 
-Wi-Fi credentials
+| PN532 Pin | XIAO Pin | Notes                    |
+|-----------|----------|--------------------------|
+| SDA       | D6       | I²C data                 |
+| SCL       | D5       | I²C clock                |
+| IRQ       | D3       | Interrupt from PN532     |
+| RST / RSTO| D6       | Reset (matches your code)|
+| VCC       | 3.3V/5V  | Depends on PN532 board   |
+| GND       | GND      | Common ground            |
 
-Default doorbell URL
+> ⚠️ Make sure your PN532 is set to **I²C mode** (check solder jumpers or DIP switch on your module).
 
-List of NFC tags
+---
 
-Per-tag URLs
+## 📦 Software Overview
 
-Add-next-tag mode flag
+The sketch combines:
 
-Smart Wi-Fi Boot Logic
+- `WiFi.h`, `WebServer.h`, `Preferences.h`, `HTTPClient.h`
+- `Adafruit_PN532.h` for PN532 NFC
+- Simple HTML interface served from the ESP32
 
-First boot: Access Point mode (SSID: ESP32-Setup, password: 12345678)
+### Namespaces in Preferences
 
-Normal boot: Connects with saved Wi-Fi credentials
+- `wifi`
+  - `ssid` – stored Wi-Fi SSID
+  - `password` – stored Wi-Fi password
 
-If unable to connect: AP + STA mode (still configurable while attempting to reconnect)
+- `config`
+  - `doorbellURL` – global default doorbell URL
 
-Compatible With:
+- `rfid`
+  - `count` – number of stored tags
+  - `tagN` – UID string for tag `N`
+  - `urlN` – doorbell URL for tag `N`
+  - `waiting` – flag: next scanned tag should be added
 
-Alexa Virtual Smart Home (URL routines)
+---
 
-Home Assistant
+## 🚀 Getting Started
 
-IFTTT
+### 1. Flash the Firmware
 
-Node-RED
+1. Open the `.ino` file in **Arduino IDE** (or PlatformIO).
+2. Select:
+   - Board: **Seeed XIAO ESP32S3** (or equivalent)
+   - Correct COM port.
+3. Install required libraries:
+   - `Adafruit PN532`
+   - `ESP32` board support (via Boards Manager)
+4. Upload the sketch.
 
-Any system that accepts HTTP GET requests
+---
 
-Hardware Required
+### 2. First Boot: Wi-Fi Setup (AP Mode)
 
-Seeed Studio XIAO ESP32-S3 (recommended)
+On first boot (no saved Wi-Fi):
 
-PN532 NFC Reader (red generic model, I2C mode)
+1. The ESP32 will start an AP:
+   - **SSID:** `ESP32-Setup`
+   - **Password:** `12345678`
+2. Connect your phone/laptop to this Wi-Fi.
+3. Open a browser and go to:  
+   `http://192.168.4.1/` (typical AP IP)
+4. You’ll see the **web portal**:
+   - Enter **SSID** and **Password**
+   - Click **Save WiFi**
 
-USB-C cable
+The device will reboot into **STA mode**, try to connect, and stay in STA or AP+STA depending on success.
 
-RFID/NFC cards or key fobs
+---
 
-Wiring
-PN532 Pin	XIAO ESP32-S3 Pin	Description
-SDA	D6	I2C Data
-SCL	D5	I2C Clock
-IRQ	D3	Interrupt line
-RST / RSTO	D6	Reset pin (matches code)
-VCC	3.3V or 5V	Power (depends on module)
-GND	GND	Ground
+### 3. Web Interface Overview
 
-The code assumes:
+Once on your normal Wi-Fi:
 
-#define PN532_IRQ   (D3)
-#define PN532_RESET (D6)
+1. Find the ESP32’s IP (via Serial Monitor or router).
+2. Go to `http://<ESP_IP>/` in your browser.
 
-Setup Instructions
-1. Flash the Firmware
+You’ll see sections:
 
-Open the .ino file in Arduino IDE, select the correct board and port, and upload the sketch.
+#### 🔹 Wi-Fi Status
+Shows whether the device is **Connected** or **Not Connected**.
 
-2. First-Time Wi-Fi Setup
+#### 🔹 Default Doorbell URL
 
-If no saved Wi-Fi credentials exist, the ESP32 starts in AP mode:
+A form like:
 
-SSID: ESP32-Setup
-
-Password: 12345678
-
-Connect to it, then open:
-
-http://192.168.4.1/
-
-
-Use the web page to enter your Wi-Fi SSID/password.
-
-3. Configure Default Doorbell URL
-
-In the web interface, set your preferred HTTP GET endpoint such as an Alexa Virtual Smart Home routine URL.
-
-4. Add NFC Tags
-
-In the web page, click “Add Next RFID Scan”
-
-Tap a tag on the PN532 reader
-
-Tag appears in the table with its own URL field
-
-5. Edit or Delete Tags
-
-Each tag row contains:
-
-Its UID
-
-Editable URL input
-
-Save action
-
-Delete action
-
-New tags inherit the default URL but can be assigned unique URLs.
-
-How It Works
-NFC Read Cycle
-
-PN532 detects tag and triggers IRQ
-
-ESP32 reads UID
-
-If “add mode” is active → tag is saved
-
-If tag UID exists → its assigned URL is loaded
-
-URL is called using HTTP GET
-
-Wi-Fi Cycle
-
-ESP32 loads saved SSID/password
-
-Attempts STA connection for ~10 seconds
-
-If connection succeeds → normal mode
-
-If connection fails → AP+STA mode (allows configuration)
-
-Storage Layout (Preferences)
-Namespace: wifi
-
-ssid
-
-password
-
-Namespace: config
-
-doorbellURL
-
-Namespace: rfid
-
-count
-
-waiting
-
-tag0, tag1, tag2, …
-
-url0, url1, url2, …
-
-Each tag index matches its URL entry.
-
-Troubleshooting
-PN532 Not Detected
-
-Ensure PN532 is in I2C mode (check solder jumpers)
-
-Verify wiring:
-
-SDA → D6
-
-SCL → D5
-
-IRQ → D3
-
-RST → D6
-
-Try the standalone PN532 example sketch to verify hardware
-
-Cannot Access Web Interface
-
-In AP mode → use http://192.168.4.1/
-
-In STA mode → check Serial Monitor for the assigned IP
-
-Doorbell Not Triggering
-
-Check that the tag appears as “KNOWN TAG” in Serial Monitor
-
-Verify the assigned URL manually in a browser
-
-Confirm Internet connectivity
-
-Extensions and Add-Ons
-
-You may extend the project with:
-
-Relay for door strike / lock
-
-LED status indicators (authorized / unauthorized)
-
-Buzzer feedback
-
-Last-N scanned tags log in the interface
-
-MQTT integration
-
-Password-protected web portal
-
-License
-
-This project is released under the MIT License.
-
+```text
+Default Doorbell URL
+[ https://www.virtualsmarthome.xyz/url_routine_trigger/... ]
+[ Save Default URL ]
