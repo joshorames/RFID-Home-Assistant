@@ -233,16 +233,3 @@ License
 
 This project is released under the MIT License.
 
-Notes
-
-If you want:
-
-A version of this README with images
-
-A version with diagrams
-
-Auto-generated GitHub repo structure
-
-STL designs for an enclosure
-
-Those can be added as separate assets.
