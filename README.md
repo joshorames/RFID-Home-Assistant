@@ -153,3 +153,197 @@ A form like:
 Default Doorbell URL
 [ https://www.virtualsmarthome.xyz/url_routine_trigger/... ]
 [ Save Default URL ]
+```
+
+This URL is used for:
+
+The “Test Doorbell” button
+
+Newly added tags (initial URL value)
+
+As a fallback if a tag doesn’t have a custom URL saved
+
+🔹 Wi-Fi Configuration
+
+You can update saved SSID and password here at any time:
+
+SSID:     [ your-ssid ]
+Password: [ ******** ]
+[ Save WiFi ]
+
+🔹 Doorbell Test
+[Test Doorbell]
+
+
+This sends an HTTP GET to the currently saved default doorbell URL.
+
+4. Adding a New RFID/NFC Tag
+
+Go to the web UI.
+
+Click “Add Next RFID Scan”.
+
+Within a few seconds, present your NFC card/tag to the PN532.
+
+Serial output will show something like:
+
+Card UID: 04AABBCCDD
+Saved new tag: 04AABBCCDD
+
+
+Reload the main page — you’ll see a new row in the Stored RFID Tags table.
+
+5. Editing Tag-Specific URLs
+
+In the Stored RFID Tags table, each row looks like:
+
+UID	Doorbell URL	Actions
+04AABBCCDD	https://your-url-for-this-tag.com/...	[Save] [delete]
+
+You can:
+
+Change the URL text
+
+Click Save to update that tag’s URL
+
+Click [delete] to remove the tag completely
+
+On scan:
+
+If the UID is found in the list:
+
+The matching URL for that UID is triggered.
+
+If the UID is not in the list:
+
+It’s treated as unknown (no URL call).
+
+🔔 How the Doorbell Trigger Works
+
+The code uses simple HTTP GET requests:
+
+HTTPClient http;
+http.begin(urlOverride);           // or doorbellURL if using default
+int code = http.GET();
+http.end();
+
+
+This works perfectly with:
+
+Virtual Smart Home
+
+IFTTT Webhooks
+
+Home Assistant automations
+
+Any service that reacts to an HTTP GET URL
+
+Each RFID tag can trigger a different webhook, so you can:
+
+One tag for front door
+
+Another tag for garage
+
+Another for package dropoff
+
+Etc.
+
+🔁 Boot Flow & Wi-Fi Logic
+
+On startup:
+
+Load ssid and password from Preferences.
+
+If no Wi-Fi saved:
+
+Start AP only for configuration.
+
+If Wi-Fi saved:
+
+Try to connect as STA for ~10 seconds.
+
+If connect fails:
+
+Enable AP+STA:
+
+Still tries STA.
+
+At the same time hosts ESP32-Setup for reconfiguration.
+
+PN532 initialization happens after Wi-Fi setup, and if the reader isn’t found, the device will halt with:
+
+Didn't find PN53x board
+
+🛠️ Troubleshooting
+PN532 not detected (Didn't find PN53x board)
+
+Double-check I²C mode on your PN532 (jumpers / DIP switch).
+
+Verify wiring:
+
+SDA → D6
+
+SCL → D5
+
+IRQ → D3
+
+RST → D6 (as in code)
+
+VCC → correct voltage (3.3V vs 5V per module)
+
+Ensure GND is common between PN532 and ESP32.
+
+Web page doesn’t load
+
+Make sure you’re on the same network as the ESP32.
+
+Check IP in the Serial Monitor.
+
+If Wi-Fi connect failed, device uses AP+STA:
+
+Connect to ESP32-Setup and open http://192.168.4.1/.
+
+Tag scanned but nothing happens
+
+Check Serial Monitor to see if UID is printed.
+
+Make sure the tag UID appears in the Stored RFID Tags table.
+
+Verify the per-tag URL is a valid HTTPS/HTTP URL.
+
+Check that the destination server accepts GET requests.
+
+🧩 Ideas & Extensions
+
+Add an output pin to drive a relay for physical door strike.
+
+Add a buzzer:
+
+Short beep = success
+
+Long beep = unknown tag
+
+Add a status LED:
+
+Green flash: known tag
+
+Red flash: unknown tag
+
+Log last N scanned tags and display them in a web “Logs” section.
+
+📄 License
+
+Add your preferred license here, for example:
+
+MIT License
+
+
+Or keep it private for personal use.
+
+📚 Credits
+
+ESP32-S3 (XIAO) by Seeed Studio
+
+PN532 support via Adafruit PN532 Library
+
+Virtual Smart Home / Alexa URL integration via customizable HTTP endpoints
