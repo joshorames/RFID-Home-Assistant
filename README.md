@@ -1,5 +1,8 @@
 # ESP32 RFID Home Assistant
 
+<img width="945" height="438" alt="image" src="https://github.com/user-attachments/assets/a99cedb7-bd15-4366-9cb8-0a6503e1f76b" />
+
+
 Turn an ESP32-S3 (XIAO) and a PN532 NFC reader into a **smart doorbell system**:
 
 - Configure Wi-Fi from a **captive-style web portal**
